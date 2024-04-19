@@ -1,10 +1,16 @@
 use log::error;
 use parking_lot::RwLock;
 use std::fs::OpenOptions;
-use std::os::windows::prelude::FileExt;
+
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::{fs::File, io::Write};
+
+#[cfg(target_os = "windows")]
+use std::os::windows::prelude::FileExt;
+
+#[cfg(target_os = "macos")]
+use std::os::unix::prelude::FileExt;
 
 use super::IOManager;
 use crate::errors::{Errors, Result};
@@ -39,13 +45,24 @@ impl FileIO {
 impl IOManager for FileIO {
     fn read(&self, buf: &mut [u8], offset: u64) -> Result<usize> {
         let read_guard = self.fd.read();
+
+        #[cfg(target_os = "windows")]
         match read_guard.seek_read(buf, offset) {
             Ok(n) => return Ok(n),
             Err(e) => {
                 error!("read from data file err: {}", e);
                 return Err(Errors::FailedToReadFromDataFile);
             }
-        };
+        }
+
+        #[cfg(target_os = "macos")]
+        match read_guard.read_at(buf, offset) {
+            Ok(n) => return Ok(n),
+            Err(e) => {
+                error!("read from data file err: {}", e);
+                return Err(Errors::FailedToReadFromDataFile);
+            }
+        }
     }
 
     fn write(&self, buf: &[u8]) -> Result<usize> {
@@ -67,6 +84,10 @@ impl IOManager for FileIO {
         };
         Ok(())
     }
+}
+
+trait ReadAt {
+    fn read_with_offset(&self, buf: &mut [u8], offset: u64) -> Result<usize>;
 }
 
 #[cfg(test)]
