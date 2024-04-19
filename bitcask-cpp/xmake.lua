@@ -1,8 +1,17 @@
 add_rules("mode.debug", "mode.release")
+set_languages("c++17")
 
 target("bitcask-cpp")
     set_kind("binary")
-    add_files("src/*.cpp")
+    add_files("src/main.cpp")
+    add_files("src/data/*.cpp")
+    add_files("src/index/*.cpp")
+
+target("test")
+    set_kind("binary")
+    add_files("src/test/*.cpp")
+
+
 
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
