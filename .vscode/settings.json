@@ -1,1 +1,47 @@
-{}
+{
+    "clang-format.executable": "C:/Users/lee/.config/vscode/cpp/.clang-format",
+    "clangd.path": "D:/msys64/clang64/bin/clangd.exe",
+    "clangd.arguments": [
+        "--all-scopes-completion",
+        "--background-index",
+        "--clang-tidy",
+        "--clang-tidy-checks=performance-*, bugprone-*, misc-*, google-*, modernize-*, readability-*, portability-*",
+        "--compile-commands-dir=${workspaceFolder}/.vscode",
+        "--completion-parse=auto",
+        "--completion-style=detailed",
+        "--query-driver=D:/msys64/clang64/bin/clang++.exe",
+        "--enable-config",
+        "--fallback-style=Webkit",
+        "--function-arg-placeholders=true",
+        "--header-insertion-decorators",
+        "--header-insertion=iwyu",
+        "--include-cleaner-stdlib",
+        "--log=verbose",
+        "--pch-storage=memory",
+        "--pretty",
+        "--ranking-model=decision_forest",
+        "-j=12"
+    ],
+    "clangd.fallbackFlags": [
+        "-pedantic",
+        "-Wall",
+        "-Wextra",
+        "-Wcast-align",
+        "-Wdouble-promotion",
+        "-Wformat=2",
+        "-Wimplicit-fallthrough",
+        "-Wmisleading-indentation",
+        "-Wnon-virtual-dtor",
+        "-Wnull-dereference",
+        "-Wold-style-cast",
+        "-Woverloaded-virtual",
+        "-Wpedantic",
+        "-Wshadow",
+        "-Wunused",
+        "-pthread",
+        "-fuse-ld=lld",
+        "-fsanitize=address",
+        "-fsanitize=undefined",
+        "-stdlib=libc++"
+    ]
+}
