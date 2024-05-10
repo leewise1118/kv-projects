@@ -1,5 +1,6 @@
 {
-    "clang-format.executable": "C:/Users/lee/.config/vscode/cpp/.clang-format",
+    "clang-format.assumFilename": "F:\\Code\\kv-projects\\bitcask-cpp\\.clang-format",
+    "editor.formatOnSave": true,
     "clangd.path": "D:/msys64/clang64/bin/clangd.exe",
     "clangd.arguments": [
         "--all-scopes-completion",

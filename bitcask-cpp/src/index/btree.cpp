@@ -18,11 +18,11 @@ LogRecordPos BTree::get( vector<u8> key ) {
 
 bool BTree::del( vector<u8> key ) {
     RWLock.lock();
-    auto it = tree->find( key );
-    if ( it != tree->end() ) {
-        tree->erase( it );
+    auto iter = tree->find( key );
+    if ( iter != tree->end() ) {
+        tree->erase( iter );
         return true;
-    } else {
-        return false;
-    }
+    }  
+    return false;
+   
 }

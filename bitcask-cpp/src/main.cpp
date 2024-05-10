@@ -1,5 +1,5 @@
+#include "./data/log_record.h"
 #include "./index/BTree.h"
-#include "data/log_record.h"
 #include <iostream>
 
 using namespace std;
