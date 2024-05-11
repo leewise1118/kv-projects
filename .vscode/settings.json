@@ -1,7 +1,6 @@
 {
-    "clang-format.assumFilename": "F:\\Code\\kv-projects\\bitcask-cpp\\.clang-format",
-    "editor.formatOnSave": true,
-    "clangd.path": "D:/msys64/clang64/bin/clangd.exe",
+    "clang-format.executable": "/usr/local/opt/llvm/bin/clang-format",
+    "clangd.path": "/usr/local/opt/llvm/bin/clangd",
     "clangd.arguments": [
         "--all-scopes-completion",
         "--background-index",
@@ -10,7 +9,7 @@
         "--compile-commands-dir=${workspaceFolder}/.vscode",
         "--completion-parse=auto",
         "--completion-style=detailed",
-        "--query-driver=D:/msys64/clang64/bin/clang++.exe",
+        "--query-driver=/usr/local/opt/llvm/bin/clang++",
         "--enable-config",
         "--fallback-style=Webkit",
         "--function-arg-placeholders=true",

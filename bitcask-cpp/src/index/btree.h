@@ -1,5 +1,6 @@
 #pragma once
 #include "../data/log_record.h"
+#include "../utils/type.h"
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -7,7 +8,7 @@
 #include <vector>
 using namespace std;
 
-using u8 = uint8_t;
+namespace bitcask {
 
 class Indexer {
   public:
@@ -31,3 +32,5 @@ class BTree : public Indexer {
     shared_ptr< map< vector< u8 >, LogRecordPos > > tree;
     shared_mutex                                    RWLock;
 };
+
+} // namespace bitcask
