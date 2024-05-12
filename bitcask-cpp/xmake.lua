@@ -1,15 +1,20 @@
 add_rules("mode.debug", "mode.release")
 set_languages("c++23")
--- set_config("plat","mingw")
--- set_config("sdk","D:/msys64/mingw64")
+
+function add_platform_specific_flags()
+    if is_plat("windows") then
+        set_config("plat","mingw")
+        set_config("sdk","D:/msys64/mingw64")
+    end
+    if is_plat("macosx") then
+        add_cxflags("-fmodules")
+    end
+end
 
 target("bitcask-cpp")
     set_kind("binary")
-    add_files("src/main.cpp")
-    add_files("src/test.cpp")
-    add_files("src/data/*.cpp")
-    add_files("src/index/*.cpp")
-    add_cxflags("-fmodules")
+    add_files("src/**.cpp")
+    add_platform_specific_flags()
 --
 -- If you want to known more usage about xmake, please see https://xmake.io
 --

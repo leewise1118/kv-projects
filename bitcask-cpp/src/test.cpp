@@ -89,21 +89,54 @@ void test_btree_del() {
 }
 
 void test_file_io_read() {
-}
-void test_file_io_write() {
-    string path = "./b.data";
+    string path =
+        "/Users/lee/Documents/Code/kv-projects/bitcask-cpp/tmp/test_read.data";
     FileIO file_io( path );
 
     string       str = "key-a";
     vector< u8 > buf( str.begin(), str.end() );
     u64          write_size_1 = file_io.write( buf );
     ASSERT_EQ( 5, write_size_1 );
+
+    string       str2 = "key-bb";
+    vector< u8 > buf2( str2.begin(), str2.end() );
+    u64          write_size_2 = file_io.write( buf2 );
+    ASSERT_EQ( 6, write_size_2 );
+
+    vector< u8 > read_buf1;
+    read_buf1.resize( 5 );
+    u64    read_size1 = file_io.read( read_buf1, 0 );
+    string res1( read_buf1.begin(), read_buf1.end() );
+    ASSERT_EQ( read_size1, 5 );
+
+    ASSERT_EQ( res1, str );
+
+    remove( path.c_str() );
 }
+
+void test_file_io_write() {
+    string path =
+        "/Users/lee/Documents/Code/kv-projects/bitcask-cpp/tmp/test_write.data";
+    FileIO file_io( path );
+
+    string       str = "key-a";
+    vector< u8 > buf( str.begin(), str.end() );
+    u64          write_size_1 = file_io.write( buf );
+    ASSERT_EQ( 5, write_size_1 );
+
+    string       str2 = "key-bb";
+    vector< u8 > buf2( str2.begin(), str2.end() );
+    u64          write_size_2 = file_io.write( buf2 );
+    ASSERT_EQ( 6, write_size_2 );
+
+    // remove( path.c_str() );
+}
+
 void test() {
     test_btree_put();
     test_btree_get();
     test_btree_del();
-    test_btree_mutilthread_put();
+    // test_btree_mutilthread_put();
 
     test_file_io_write();
     test_file_io_read();

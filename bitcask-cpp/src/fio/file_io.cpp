@@ -1,4 +1,6 @@
 #include "file_io.h"
+#include <cstddef>
+#include <cstdio>
 #include <mutex>
 #include <shared_mutex>
 #include <vector>
@@ -12,6 +14,7 @@ u64 FileIO::read( vector< u8 > &buf, u64 offset ) {
     file->seekg( file->end );
     u64 file_size = file->tellg();
 
+    cout << file_size << endl;
     // 判断读取数据的大小
     if ( offset >= file_size ) {
         return 0;
@@ -23,7 +26,7 @@ u64 FileIO::read( vector< u8 > &buf, u64 offset ) {
         read_size = buf.size();
     }
 
-    this->file->seekg( offset );
+    this->file->seekg( file->beg + offset );
     if ( !this->file->read( reinterpret_cast< char * >( buf.data() ),
                             read_size ) ) {
         throw runtime_error( "Failed to read file" );
@@ -34,8 +37,8 @@ u64 FileIO::read( vector< u8 > &buf, u64 offset ) {
 u64 FileIO::write( vector< u8 > &buf ) {
     unique_lock< shared_mutex > WriteLock( this->mutex );
 
-    if ( !file->write( reinterpret_cast< char * >( buf.data() ),
-                       buf.size() ) ) {
+    if ( !this->file->write( reinterpret_cast< char * >( buf.data() ),
+                             buf.size() ) ) {
         throw runtime_error( "Failed to write file" );
     }
     return buf.size();
