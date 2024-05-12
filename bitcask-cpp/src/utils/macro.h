@@ -1,7 +1,6 @@
 #pragma once
 
 #include <assert.h>
-import std;
 
 #define RESET "\033[0m"
 #define BLACK "\033[30m"
@@ -17,28 +16,32 @@ import std;
 
 #define ASSERT( x )                                                            \
     if ( !( x ) ) {                                                            \
-        std::println(                                                          \
-            "{}Assertion failed, {}In File: {}, {}Function: {}, {}Line: {}.",  \
-            RESET, GREEN, __FILE__, YELLOW, __func__, BLUE, __LINE__ );        \
+        std::cout << RESET << "Assertion failed, " << GREEN                    \
+                  << "In File: " << __FILE__ << ", " << YELLOW                 \
+                  << "Function: " << __func__ << ", " << BLUE                  \
+                  << "Line: " << __LINE__ << "." << std::endl;                 \
         assert( x );                                                           \
     } else {                                                                   \
-        std::println(                                                          \
-            "{}Assertion success, {}In File: {}, {}Function: {}, {}Line: {}.", \
-            RESET, GREEN, __FILE__, YELLOW, __func__, BLUE, __LINE__ );        \
+        std::cout << RESET << "Assertion success, " << GREEN                   \
+                  << "In File: " << __FILE__ << ", " << YELLOW                 \
+                  << "Function: " << __func__ << ", " << BLUE                  \
+                  << "Line: " << __LINE__ << "." << std::endl;                 \
         assert( x );                                                           \
     }
 
 #define ASSERT_EQ( x, y )                                                      \
     if ( x != y ) {                                                            \
-        std::println( "{}Assertion failed, {}In File: {}, {}Function: {}, "    \
-                      "{}Line: {}. {}Left: {}, Right:{}",                      \
-                      RESET, GREEN, __FILE__, YELLOW, __func__, BLUE,          \
-                      __LINE__, RED, x, y );                                   \
+        std::cout << RESET << "Assertion failed, " << GREEN                    \
+                  << "In File: " << __FILE__ << ", " << YELLOW                 \
+                  << "Function: " << __func__ << ", " << BLUE                  \
+                  << "Line: " << __LINE__ << ". " << RED << "Left: " << x      \
+                  << ", Right: " << y << std::endl;                            \
         assert( x == y );                                                      \
     } else {                                                                   \
-        std::println( "{}Assertion success, {}In File: {}, {}Function: {}, "   \
-                      "{}Line: {}. {}Left: {}, Right:{}",                      \
-                      RESET, GREEN, __FILE__, YELLOW, __func__, BLUE,          \
-                      __LINE__, RED, x, y );                                   \
+        std::cout << RESET << "Assertion success, " << GREEN                   \
+                  << "In File: " << __FILE__ << ", " << YELLOW                 \
+                  << "Function: " << __func__ << ", " << BLUE                  \
+                  << "Line: " << __LINE__ << ". " << RED << "Left: " << x      \
+                  << ", Right:" << y << std::endl;                             \
         assert( x == y );                                                      \
     }

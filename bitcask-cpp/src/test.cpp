@@ -1,4 +1,5 @@
 #include "test.h"
+#include "fio/file_io.h"
 #include "utils/macro.h"
 #include <thread>
 #include <vector>
@@ -87,11 +88,25 @@ void test_btree_del() {
     ASSERT_EQ( del3, false );
 }
 
+void test_file_io_read() {
+}
+void test_file_io_write() {
+    string path = "./b.data";
+    FileIO file_io( path );
+
+    string       str = "key-a";
+    vector< u8 > buf( str.begin(), str.end() );
+    u64          write_size_1 = file_io.write( buf );
+    ASSERT_EQ( 5, write_size_1 );
+}
 void test() {
     test_btree_put();
     test_btree_get();
     test_btree_del();
     test_btree_mutilthread_put();
+
+    test_file_io_write();
+    test_file_io_read();
 }
 
 } // namespace bitcask
