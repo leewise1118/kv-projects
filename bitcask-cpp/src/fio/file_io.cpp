@@ -5,14 +5,18 @@
 #include <shared_mutex>
 #include <vector>
 
+/// TODO: 使用File类进行重构，尽可能的简洁
 namespace bitcask {
 
 u64 FileIO::read( vector< u8 > &buf, u64 offset ) {
     shared_lock< shared_mutex > ReadLock( this->mutex );
 
     // 获取文件大小
-    file->seekg( file->end );
+    auto original_position = file->tellg();
+    file->seekg( 0, file->end );
     u64 file_size = file->tellg();
+
+    file->seekg( original_position );
 
     cout << file_size << endl;
     // 判断读取数据的大小
@@ -25,6 +29,7 @@ u64 FileIO::read( vector< u8 > &buf, u64 offset ) {
     } else {
         read_size = buf.size();
     }
+    cout << read_size << endl;
 
     this->file->seekg( file->beg + offset );
     if ( !this->file->read( reinterpret_cast< char * >( buf.data() ),

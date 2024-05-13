@@ -17,17 +17,21 @@ class FileIO : public IOManager {
   public:
     FileIO( string &file_path ) {
         file = make_shared< fstream >( file_path, fstream::in | fstream::out |
-                                                      fstream::binary );
+                                                      fstream::binary |
+                                                      fstream::app );
         if ( !*file ) {
             throw runtime_error( "Failed to open file" );
         }
     }
     ~FileIO() {
-        file->close();
+        close();
     }
 
     u64  read( vector< u8 > &buf, u64 offset ) override;
     u64  write( vector< u8 > &buf ) override;
+    void close() {
+        file->close();
+    }
     void sync() override;
 
   private:

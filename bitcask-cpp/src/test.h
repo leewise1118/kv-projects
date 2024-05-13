@@ -7,17 +7,6 @@
 
 #include <iostream>
 using namespace std;
-
-namespace bitcask {
-
-void test_btree_put();
-void test_btree_get();
-void test_btree_del();
-void test_btree_mutilthread_put();
-
-void test_file_io_read();
-void test_file_io_write();
+using namespace bitcask;
 
 void test();
-
-} // namespace bitcask
