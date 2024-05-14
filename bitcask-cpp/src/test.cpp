@@ -167,8 +167,9 @@ void test_file_constructor_and_open() {
 void test_file_read_and_write() {
     OpenOptions options;
     options.read( true ).write( true ).append( true );
-    File   file( "../../../../tmp/test_file_read_and_write.data", options );
-    string str1 = "hello world";
+    string_view  path = "../../../../tmp/test_file_read_and_write.data";
+    File         file( path, options );
+    string       str1 = "hello world";
     vector< u8 > write_buf1( str1.begin(), str1.end() );
     auto         write_size1 = file.write( write_buf1 ).unwrap();
     ASSERT_EQ( write_size1, 11 );
@@ -195,6 +196,9 @@ void test_file_read_and_write() {
     ASSERT_EQ( read_size3, 7 );
     ASSERT_EQ( string( read_buf2.begin(), read_buf2.end() ),
                string( "ello wo" ) );
+
+    // TODO: 删除文件失败，不知道为什么
+    File::remove( path );
 }
 
 string_view test_string_view_1() {
@@ -226,6 +230,6 @@ void test() {
     // test_file_io_read();
     // test_Result();
 
-    // test_file_read_and_write();
-    test_string_view();
+    test_file_read_and_write();
+    // test_string_view();
 }

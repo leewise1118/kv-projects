@@ -120,12 +120,36 @@ class File {
     bool is_open() {
         return file.is_open();
     }
+
     bool is_close() {
         return !file.is_open();
     }
 
     void close() {
         file.close();
+    }
+    // 将文件指针移动到文件开头
+    void seek_to_start() {
+        file.seekg( 0, file.beg );
+    }
+    // 将文件指针移动到文件末尾
+    void seek_to_end() {
+        file.seekg( 0, file.end );
+    }
+
+    // 从文件开头偏移offset个字节
+    void seek_from_start( u64 offset ) {
+        file.seekg( file.beg + offset );
+    }
+
+    // 从文件末尾偏移offset个字节
+    void seek_from_end( u64 offset ) {
+        file.seekg( file.end - offset );
+    }
+
+    // 从当前位置偏移offset个字节
+    void seek_from_current( u64 offset ) {
+        file.seekg( file.cur + offset );
     }
 
     void open( string &path, OpenOptions options ) {
@@ -176,11 +200,10 @@ class File {
     }
 
     u64 size() {
-        auto original_position = file.tellg();
-        file.seekg( 0, file.end );
+        auto original_position = file.cur;
+        seek_to_end();
         u64 size = file.tellg();
-        file.seekg( original_position );
-
+        seek_from_start( original_position );
         return size;
     }
 
@@ -210,13 +233,13 @@ class File {
         return Ok( read_size );
     }
 
-    bool remove( string &path ) {
+    static bool remove( string &path ) {
         return std::remove( path.c_str() );
     }
-    bool remove( const char *path ) {
+    static bool remove( const char *path ) {
         return std::remove( path );
     }
-    bool remove( string_view path ) {
+    static bool remove( string_view path ) {
         return std::remove( path.data() );
     }
 
