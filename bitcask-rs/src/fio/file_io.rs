@@ -86,10 +86,6 @@ impl IOManager for FileIO {
     }
 }
 
-trait ReadAt {
-    fn read_with_offset(&self, buf: &mut [u8], offset: u64) -> Result<usize>;
-}
-
 #[cfg(test)]
 mod tests {
     use std::{fs, path::PathBuf};

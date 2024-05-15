@@ -1,15 +1,16 @@
-use std::{collections::HashMap, fmt::Error, io::SeekFrom, sync::Arc};
+use std::{collections::HashMap, fmt::Error, fs, io::SeekFrom, path::PathBuf, sync::Arc};
 
 use crate::{
     data::{
-        data_file::DataFile,
-        log_record::{self, LogRecord, LogRecordPos, LogRecordType},
+        data_file::{self, DataFile, DATA_FILE_NAME_EXTENSION},
+        log_record::{LogRecord, LogRecordPos, LogRecordType},
     },
     errors::{Errors, Result},
     index,
     options::Options,
 };
 use bytes::Bytes;
+use log::warn;
 use parking_lot::RwLock;
 
 /// bitcask 存储引擎实例结构体
@@ -25,10 +26,67 @@ pub struct Engine {
 
     /// 内存索引
     index: Box<dyn index::Indexer>,
+
+    /// 数据库启动时的文件id, 只用于记载索引时使用，不能在其他地方更新或使用
+    file_ids: Vec<u32>,
 }
 
 impl Engine {
+    /// 打开 bitcask 引擎存储实例。
+    pub fn open(opts: Options) -> Result<Self> {
+        let options = opts.clone();
+        // 校验配置项是否合法
+        if let Some(e) = check_options(opts) {
+            return Err(e);
+        }
+
+        // 判断目录是否存在，如果不存在则创建这个目录
+        let dir_path = options.dir_path.clone();
+        if !dir_path.is_dir() {
+            if let Err(e) = fs::create_dir_all(dir_path.clone()) {
+                warn!("create database dir err: {}", e);
+                return Err(Errors::FailedToCreateDatabaseDir);
+            }
+        }
+
+        // 加载文件
+        let mut data_files = load_data_files(dir_path.clone())?;
+
+        // 设置 file id 信息。
+        let mut file_ids = Vec::new();
+        for v in data_files.iter() {
+            file_ids.push(v.get_file_id());
+        }
+
+        // 将旧文件保存在 older_files中
+        let mut older_files = HashMap::new();
+        if data_files.len() > 1 {
+            for _ in 0..=data_files.len() - 2 {
+                let data_file = data_files.pop().unwrap();
+                older_files.insert(data_file.get_file_id(), file_ids);
+            }
+        }
+
+        // 拿到当前活跃文件，即列表最后一个文件
+        let active_file = match data_files.pop() {
+            Some(v) => v,
+            None => DataFile::new(dir_path.clone(), 0)?,
+        };
+
+        // 构建存储引擎实例
+        let engine = Self{
+            options: Arc::new(options),
+            active_file: Arc::new(RwLock::new(active_file)),
+            older_files: Arc::new(RwLock::new(older_files)),
+            index: 
+            file_ids,
+
+        }
+        todo!()
+    }
+
     pub fn put(&self, key: Bytes, value: Bytes) -> Result<()> {
+        // 判断key的有效性
         if key.is_empty() {
             return Err(Errors::KeyIsEmpty);
         }
@@ -93,6 +151,7 @@ impl Engine {
         Ok(log_record.value.into())
     }
 
+    /// 追加写数据到当前活跃文件中
     fn append_log_record(&self, record: &mut LogRecord) -> Result<LogRecordPos> {
         let dir_path = self.options.dir_path.clone();
 
@@ -136,4 +195,63 @@ impl Engine {
             offset: write_off,
         })
     }
+}
+
+fn check_options(opts: Options) -> Option<Errors> {
+    let dir_path = opts.dir_path.to_str();
+    if dir_path.is_none() || dir_path.unwrap().len() == 0 {
+        return Some(Errors::DataFileNotFound);
+    }
+
+    if opts.data_file_size <= 0 {
+        return Some(Errors::DataFileSizeIsInvalid);
+    }
+    None
+}
+
+// 从数据目录中加载数据文件
+fn load_data_files(dir_path: PathBuf) -> Result<Vec<DataFile>> {
+    // 读取数据目录
+    let dir = fs::read_dir(dir_path.clone());
+    if dir.is_err() {
+        return Err(Errors::FailedToReadDatabaseDir);
+    }
+    let mut file_ids: Vec<u32> = Vec::new();
+    let mut data_files: Vec<DataFile> = Vec::new();
+
+    for file in dir.unwrap() {
+        if let Ok(entry) = file {
+            // 拿到文件名
+            let file_os_str = entry.file_name();
+            let file_name = file_os_str.to_str().unwrap();
+
+            // 判断文件是不是以 .data 扩展名
+            if file_name.ends_with(DATA_FILE_NAME_EXTENSION) {
+                let split_name: Vec<&str> = file_name.split(".").collect();
+                let file_id = match split_name[0].parse::<u32>() {
+                    Ok(fid) => fid,
+                    Err(_) => {
+                        return Err(Errors::DataDirCorrupted);
+                    }
+                };
+
+                file_ids.push(file_id);
+            }
+        }
+    }
+
+    // 如果没有数据文件，则直接返回。
+    if file_ids.is_empty() {
+        return Ok(data_files);
+    }
+    // 对文件id进行排序，从小到大进行记载，
+    file_ids.sort();
+
+    // 遍历文件所有id，以此打开文件
+    for file_id in file_ids {
+        let file = DataFile::new(dir_path.clone(), file_id)?;
+        data_files.push(file);
+    }
+
+    Ok(data_files)
 }

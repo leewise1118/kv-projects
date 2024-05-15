@@ -101,8 +101,7 @@ class Path {
 
 /*
  *  File类，目前已经完成了open, close, size, write, read等功能
- *  TODO: 未完成的功能有: (需要时完成)
- *      sync, seek, seek_to_end, seek_to_start, read_to_end, read_to_string
+ *  TODO: 未完成的功能有: (需要时完成)  sync,
  *
  *  TODO: 重构，用 fread, fwrite, fseek, fclose等函数进行重构
  */
@@ -241,6 +240,29 @@ class File {
     }
     static bool remove( string_view path ) {
         return std::remove( path.data() );
+    }
+
+    Result< u64, string_view > read_to_end( vector< u8 > &buf ) {
+        u64 file_size = size();
+        buf.resize( file_size );
+        auto res = read( buf, 0 );
+        if ( res.is_err() ) {
+            return Err( res.unwrap_err() );
+        }
+        return Ok( file_size );
+    }
+
+    Result< u64, string_view > read_to_string( string &buf ) {
+        u64 file_size = size();
+        buf.resize( file_size );
+
+        vector< u8 > vec_buf;
+        auto         res = read_to_end( vec_buf );
+        if ( res.is_err() ) {
+            return Err( res.unwrap_err() );
+        }
+        buf.assign( vec_buf.begin(), vec_buf.end() );
+        return Ok( file_size );
     }
 
   private:

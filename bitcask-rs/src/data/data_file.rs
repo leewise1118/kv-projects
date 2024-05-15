@@ -7,6 +7,7 @@ use crate::fio;
 
 use super::log_record::LogRecord;
 
+pub const DATA_FILE_NAME_EXTENSION: &str = ".data";
 /// 数据文件
 pub struct DataFile {
     /// 数据文件id
@@ -14,13 +15,12 @@ pub struct DataFile {
 
     /// 当前写偏移，记录该数据文件写到哪个位置
     write_off: Arc<RwLock<u64>>,
-
-    /// IO 管理结构
+    /// IO 管理接口
     io_manager: Box<dyn fio::IOManager>,
 }
 
 impl DataFile {
-    pub fn new(dir_path: &PathBuf, file_id: u32) -> Result<DataFile> {
+    pub fn new(dir_path: PathBuf, file_id: u32) -> Result<DataFile> {
         todo!()
     }
 

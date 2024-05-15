@@ -12,3 +12,5 @@ pub trait Indexer: Sync + Send {
     /// delete 根据 key 删除对应的索引位置信息
     fn delete(&self, key: Vec<u8>) -> bool;
 }
+
+pub fn new_index() {}
