@@ -2,7 +2,7 @@ use std::{collections::HashMap, fmt::Error, fs, io::SeekFrom, path::PathBuf, syn
 
 use crate::{
     data::{
-        data_file::{self, DataFile, DATA_FILE_NAME_EXTENSION},
+        data_file::{DataFile, DATA_FILE_NAME_EXTENSION},
         log_record::{LogRecord, LogRecordPos, LogRecordType},
     },
     errors::{Errors, Result},
@@ -63,7 +63,7 @@ impl Engine {
         if data_files.len() > 1 {
             for _ in 0..=data_files.len() - 2 {
                 let data_file = data_files.pop().unwrap();
-                older_files.insert(data_file.get_file_id(), file_ids);
+                older_files.insert(data_file.get_file_id(), data_file);
             }
         }
 
@@ -74,15 +74,18 @@ impl Engine {
         };
 
         // 构建存储引擎实例
-        let engine = Self{
-            options: Arc::new(options),
+        let mut engine = Self {
+            options: Arc::new(options.clone()),
             active_file: Arc::new(RwLock::new(active_file)),
             older_files: Arc::new(RwLock::new(older_files)),
-            index: 
+            index: Box::new(index::new_index(options.index_type)),
             file_ids,
+        };
 
-        }
-        todo!()
+        // 从数据文件中加载索引
+        engine.load_index_from_data_files();
+
+        Ok(engine)
     }
 
     pub fn put(&self, key: Bytes, value: Bytes) -> Result<()> {
@@ -132,13 +135,16 @@ impl Engine {
         let older_files = self.older_files.read();
 
         let log_record = match active_file.get_file_id() == log_record_pos.file_id {
-            true => active_file.read_log_record(log_record_pos.offset)?,
+            true => active_file.read_log_record(log_record_pos.offset)?.record,
             false => {
                 let old_file = older_files.get(&log_record_pos.file_id);
                 if old_file.is_none() {
                     return Err(Errors::DataFileNotFound);
                 }
-                old_file.unwrap().read_log_record(log_record_pos.offset)?
+                old_file
+                    .unwrap()
+                    .read_log_record(log_record_pos.offset)?
+                    .record
             }
         };
 
@@ -172,11 +178,11 @@ impl Engine {
             // 将旧的数据文件放入map
             let mut older_files = self.older_files.write();
 
-            let old_file = DataFile::new(&dir_path, current_fid)?;
+            let old_file = DataFile::new(dir_path.clone(), current_fid)?;
             older_files.insert(current_fid, old_file);
 
             // 打开行的数据文件
-            let new_file = DataFile::new(&dir_path, current_fid + 1)?;
+            let new_file = DataFile::new(dir_path, current_fid + 1)?;
 
             *active_file = new_file;
         }
@@ -194,6 +200,64 @@ impl Engine {
             file_id: active_file.get_file_id(),
             offset: write_off,
         })
+    }
+
+    /// 从数据文件中加载内存索引
+    /// 遍历文件中的内容，并依次处理其中的记录
+    fn load_index_from_data_files(&mut self) -> Result<()> {
+        // 数据文件为空，直接返回
+        if self.file_ids.is_empty() {
+            return Ok(());
+        }
+
+        let active_files = self.active_file.read();
+        let older_files = self.older_files.read();
+
+        // 遍历文件id
+        for (i, file_id) in self.file_ids.iter().enumerate() {
+            let mut offset = 0;
+            loop {
+                let log_record_res = match *file_id == active_files.get_file_id() {
+                    true => active_files.read_log_record(offset),
+                    false => {
+                        let older_file = older_files.get(file_id).unwrap();
+                        older_file.read_log_record(offset)
+                    }
+                };
+
+                let (log_record, size) = match log_record_res {
+                    Ok(v) => (v.record, v.size),
+                    Err(e) => {
+                        if e == Errors::ReadDataFileEOF {
+                            break;
+                        }
+                        return Err(e);
+                    }
+                };
+                // 构建内存索引
+                let log_record_pos = LogRecordPos {
+                    file_id: *file_id,
+                    offset,
+                };
+                match log_record.rec_type {
+                    LogRecordType::NORMAL => {
+                        self.index.put(log_record.key.to_vec(), log_record_pos);
+                    }
+                    LogRecordType::DELETED => {
+                        self.index.delete(log_record.key.to_vec());
+                    }
+                }
+
+                // 递增offset， 下一次读取的时候从新的位置开始
+                offset += size;
+            }
+
+            // 设置活跃文件的offset
+            if i == self.file_ids.len() - 1 {
+                active_files.set_write_off(offset);
+            }
+        }
+        Ok(())
     }
 }
 

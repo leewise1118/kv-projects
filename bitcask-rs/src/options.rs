@@ -16,6 +16,7 @@ pub struct Options {
     pub index_type: IndexType,
 }
 
+#[derive(Clone)]
 pub enum IndexType {
     /// Btree 索引
     BTree,

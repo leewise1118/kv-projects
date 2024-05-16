@@ -2,6 +2,7 @@
 #include "fio/file.h"
 #include "fio/file_io.h"
 #include "utils/Result.h"
+#include "utils/RwLock.h"
 #include "utils/macro.h"
 #include "utils/type.h"
 #include <string>
@@ -220,6 +221,30 @@ void test_string_view() {
     cout << sv2 << endl;
 }
 
+void test_RwLock() {
+    int           data = 0;
+    RwLock< int > rwlock( data );
+    // 创建不同线程，读写data，验证读写锁的有效性
+
+    std::thread t1( [ & ]() {
+        auto readguard = rwlock.read();
+        int  i         = 1000;
+        // 读取data
+        while ( i-- ) {
+            std::cout << "read data: " << data << std::endl;
+        }
+    } );
+    std::thread t2( [ & ]() {
+        auto writeguard = rwlock.write();
+        int  i          = 1000;
+        while ( i-- ) {
+            std::cout << "write data: " << data++ << std::endl;
+        }
+    } );
+
+    t1.join();
+    t2.join();
+}
 void test() {
     // test_btree_put();
     // test_btree_get();
@@ -230,6 +255,7 @@ void test() {
     // test_file_io_read();
     // test_Result();
 
-    test_file_read_and_write();
+    // test_file_read_and_write();
     // test_string_view();
+    test_RwLock();
 }

@@ -1,5 +1,7 @@
 pub mod btree;
-use crate::data::log_record::LogRecordPos;
+use crate::{data::log_record::LogRecordPos, options::IndexType};
+
+use self::btree::BTree;
 
 /// Indexer 索引trait ，后续如果想要接入其他数据结构，则直接实现这个接口。
 pub trait Indexer: Sync + Send {
@@ -13,4 +15,10 @@ pub trait Indexer: Sync + Send {
     fn delete(&self, key: Vec<u8>) -> bool;
 }
 
-pub fn new_index() {}
+pub fn new_index(index_type: IndexType) -> impl Indexer {
+    match index_type {
+        IndexType::BTree => BTree::new(),
+        IndexType::SkipLisk => todo!(),
+        _ => panic!("unknow index type"),
+    }
+}

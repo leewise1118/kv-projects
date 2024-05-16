@@ -29,3 +29,9 @@ pub struct LogRecordPos {
     /// 偏移信息
     pub(crate) offset: u64,
 }
+
+/// 从数据文件中读取的 log_record 信息，包含其size
+pub struct ReadLogRecord {
+    pub record: LogRecord,
+    pub size: u64,
+}

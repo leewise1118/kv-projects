@@ -5,7 +5,7 @@ use parking_lot::RwLock;
 
 use crate::fio;
 
-use super::log_record::LogRecord;
+use super::log_record::{LogRecord, ReadLogRecord};
 
 pub const DATA_FILE_NAME_EXTENSION: &str = ".data";
 /// 数据文件
@@ -34,8 +34,13 @@ impl DataFile {
         *read_guard
     }
 
-    pub fn read_log_record(&self, offset: u64) -> Result<LogRecord> {
+    pub fn read_log_record(&self, offset: u64) -> Result<ReadLogRecord> {
         todo!()
+    }
+
+    pub fn set_write_off(&self, offset: u64) {
+        let mut write_guard = self.write_off.write();
+        *write_guard = offset;
     }
     pub fn write(&self, buf: &[u8]) -> Result<usize> {
         todo!()
